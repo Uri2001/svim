@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Manage multiple configurations for Neovim
+
+# Check for required option 'config'
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 [-c] <config>"
+    exit 1
+fi
+
+CREATE_CONFIG=false
+
+# Parse options
+while getopts ":c" opt; do
+  case $opt in
+    c)
+      CREATE_CONFIG=true
+      ;;
+    \?)
+      echo "Unknown option: -$OPTARG" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# Remove parsed options
+shift $((OPTIND -1))
+
+CONFIG_NAME=$1
+
+# Configs pathes
+CONFIG_PATH="$HOME/.config/nvim_$CONFIG_NAME"
+SHARE_PATH="$HOME/.local/share/nvim_$CONFIG_NAME"
+CACHE_PATH="$HOME/.cache/nvim_$CONFIG_NAME"
+
+# Links pathes
+NVIM_CONFIG="$HOME/.config/nvim"
+NVIM_SHARE="$HOME/.local/share/nvim"
+NVIM_CACHE="$HOME/.cache/nvim"
+
+if [ "$CREATE_CONFIG" = true ]; then
+    if [ -d "$CONFIG_PATH" ] || [ -d "$SHARE_PATH" ] || [ -d "$CACHE_PATH" ]; then
+        echo "Error: Configuration directories already existis."
+        exit 1
+    fi
+
+    mkdir -p "$CONFIG_PATH" "$SHARE_PATH" "$CACHE_PATH"
+
+    [ -L "$NVIM_CONFIG" ] && rm "$NVIM_CONFIG"
+    [ -L "$NVIM_SHARE" ] && rm "$NVIM_SHARE"
+    [ -L "$NVIM_CACHE" ] && rm "$NVIM_CACHE"
+
+    ln -s "$CONFIG_PATH" "$NVIM_CONFIG"
+    ln -s "$SHARE_PATH" "$NVIM_SHARE"
+    ln -s "$CACHE_PATH" "$NVIM_CACHE"
+
+    echo "New configuration 'nvim_$CONFIG_NAME' created and switched to."
+else
+    if [ ! -d "$CONFIG_PATH" ] || [ ! -d "$SHARE_PATH" ] || [ ! -d "$CACHE_PATH" ]; then
+        echo "Error: one or more conficuration dirs doesn't exist(s)."
+        exit 1
+    fi
+
+    [ -L "$NVIM_CONFIG" ] && rm "$NVIM_CONFIG"
+    [ -L "$NVIM_SHARE" ] && rm "$NVIM_SHARE"
+    [ -L "$NVIM_CACHE" ] && rm "$NVIM_CACHE"
+
+    ln -s "$CONFIG_PATH" "$NVIM_CONFIG"
+    ln -s "$SHARE_PATH" "$NVIM_SHARE"
+    ln -s "$CACHE_PATH" "$NVIM_CACHE"
+
+    echo "Switched to 'nvim_$CONFIG_NAME'."
+fi
