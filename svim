@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Manage multiple configurations for Neovim
-# v.1.1.1
+# v.2.1
 # https://github.com/Uri2001/svim
 
 # Check for required option 'config'
