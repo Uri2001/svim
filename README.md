@@ -9,7 +9,7 @@ Copy script to `/usr/local/bin`, and set executive permission
 
 `-l`: (Optional) Lists all available configurations and displays the current configuration.
 
-`-r <config>`: (Optional) Removes the specified configuration after confirmation.
+`-r <config>`: (Optional) Removes the specified configuration after confirmation, provided it is not the current configuration.
 
 `config`: (Required) The name of the configuration you want to create, switch to, or remove.
 
@@ -89,6 +89,7 @@ svim -r <config_name>
 ```
 
 What It Does:
+- **Prevents Deletion of Current Configuration**: If the specified configuration is the currently active one, the script will inform you and prevent deletion.
 - Prompts for confirmation by asking the user to enter the configuration name twice.
 - Deletes the specified configuration directories if confirmed.
 
@@ -98,6 +99,7 @@ If the required config parameter is missing, the script will display usage infor
 When creating a new configuration with `-c`, if the target configuration directories already exist, the script will inform you and terminate to prevent overwriting existing configurations.
 When switching configurations without `-c`, if the specified configuration directories do not exist, the script will notify you of the missing directories and exit.
 When removing a configuration, if the specified configuration does not exist, the script will notify you and exit.
+If you attempt to remove the current configuration, the script will inform you that it cannot be deleted and exit.
 
 #### Symbolic Links:
 
@@ -156,6 +158,17 @@ Are you sure you want to remove the configuration 'myconfig'? (type it twice to 
 Enter configuration name: myconfig
 Confirm configuration name: myconfig
 Configuration 'myconfig' has been removed.
+```
+
+#### Error Scenario – Attempt to Remove Current Configuration:
+
+```bash
+svim -r dev
+```
+Output:
+
+```bash
+Error: You cannot delete the current configuration 'dev'. Please switch to another configuration first.
 ```
 
 #### Error Scenario – Attempt to Create an Existing Configuration:

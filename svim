@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Manage multiple configurations for Neovim
+# v.1.1.1
+# https://github.com/Uri2001/svim
 
 # Check for required option 'config'
 if [ "$#" -lt 1 ]; then
@@ -49,6 +51,14 @@ if [ "$LIST_CONFIG" = true ]; then
 fi
 
 if [ "$REMOVE_CONFIG" = true ]; then
+    if [ -L "$HOME/.config/nvim" ]; then
+        CURRENT_CONFIG=$(basename "$(readlink "$HOME/.config/nvim")")
+        if [ "$CURRENT_CONFIG" = "nvim_$CONFIG_NAME" ]; then
+            echo "Error: You cannot delete the current configuration '$CURRENT_CONFIG'. Please switch to another configuration first."
+            exit 1
+        fi
+    fi
+
     CONFIRM_NAME=""
     echo "Are you sure you want to remove the configuration '$CONFIG_NAME'? (type it twice to confirm)"
     
