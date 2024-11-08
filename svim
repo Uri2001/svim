@@ -32,11 +32,19 @@ while getopts ":clr:" opt; do
 done
 
 # Remove parsed options
-shift $((OPTIND -1))
+shift $((OPTIND - 1))
 
 if [ "$LIST_CONFIG" = true ]; then
     echo "Available configurations:"
     ls "$HOME/.config/" | grep 'nvim_' | sed 's/nvim_//'
+    
+    # Output the current configuration
+    if [ -L "$HOME/.config/nvim" ]; then
+        CURRENT_CONFIG=$(basename "$(readlink "$HOME/.config/nvim")")
+        echo "Current configuration: ${CURRENT_CONFIG#nvim_}"
+    else
+        echo "No current configuration is set."
+    fi
     exit 0
 fi
 
@@ -47,7 +55,7 @@ if [ "$REMOVE_CONFIG" = true ]; then
     read -p "Enter configuration name: " CONFIRM_NAME_1
     read -p "Confirm configuration name: " CONFIRM_NAME_2
     
-    if [ "$CONFIRM_NAME_1" != "$CONFIRM_NAME" ] || [ "$CONFIRM_NAME_1" != "$CONFIRM_NAME_2" ]; then
+    if [ "$CONFIRM_NAME_1" != "$CONFIG_NAME" ] || [ "$CONFIRM_NAME_1" != "$CONFIRM_NAME_2" ]; then
         echo "Configuration name does not match. Aborting deletion."
         exit 1
     fi
