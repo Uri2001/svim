@@ -3,17 +3,26 @@
 
 # Check for required option 'config'
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 [-c] <config>"
+    echo "Usage: $0 [-c] <config> | [-l] | [-r] <config>"
     exit 1
 fi
 
 CREATE_CONFIG=false
+LIST_CONFIG=false
+REMOVE_CONFIG=false
 
 # Parse options
-while getopts ":c" opt; do
+while getopts ":clr:" opt; do
   case $opt in
     c)
       CREATE_CONFIG=true
+      ;;
+    l)
+      LIST_CONFIG=true
+      ;;
+    r)
+      REMOVE_CONFIG=true
+      CONFIG_NAME="$OPTARG"
       ;;
     \?)
       echo "Unknown option: -$OPTARG" >&2
@@ -25,21 +34,53 @@ done
 # Remove parsed options
 shift $((OPTIND -1))
 
-CONFIG_NAME=$1
+if [ "$LIST_CONFIG" = true ]; then
+    echo "Available configurations:"
+    ls "$HOME/.config/" | grep 'nvim_' | sed 's/nvim_//'
+    exit 0
+fi
 
-# Configs pathes
+if [ "$REMOVE_CONFIG" = true ]; then
+    CONFIRM_NAME=""
+    echo "Are you sure you want to remove the configuration '$CONFIG_NAME'? (type it twice to confirm)"
+    
+    read -p "Enter configuration name: " CONFIRM_NAME_1
+    read -p "Confirm configuration name: " CONFIRM_NAME_2
+    
+    if [ "$CONFIRM_NAME_1" != "$CONFIRM_NAME" ] || [ "$CONFIRM_NAME_1" != "$CONFIRM_NAME_2" ]; then
+        echo "Configuration name does not match. Aborting deletion."
+        exit 1
+    fi
+    
+    CONFIG_PATH="$HOME/.config/nvim_$CONFIG_NAME"
+    SHARE_PATH="$HOME/.local/share/nvim_$CONFIG_NAME"
+    CACHE_PATH="$HOME/.cache/nvim_$CONFIG_NAME"
+
+    if [ -d "$CONFIG_PATH" ]; then
+        rm -rf "$CONFIG_PATH" "$SHARE_PATH" "$CACHE_PATH"
+        echo "Configuration '$CONFIG_NAME' has been removed."
+    else
+        echo "Error: Configuration '$CONFIG_NAME' does not exist."
+        exit 1
+    fi
+    exit 0
+fi
+
+CONFIG_NAME="$1"
+
+# Config paths
 CONFIG_PATH="$HOME/.config/nvim_$CONFIG_NAME"
 SHARE_PATH="$HOME/.local/share/nvim_$CONFIG_NAME"
 CACHE_PATH="$HOME/.cache/nvim_$CONFIG_NAME"
 
-# Links pathes
+# Links paths
 NVIM_CONFIG="$HOME/.config/nvim"
 NVIM_SHARE="$HOME/.local/share/nvim"
 NVIM_CACHE="$HOME/.cache/nvim"
 
 if [ "$CREATE_CONFIG" = true ]; then
     if [ -d "$CONFIG_PATH" ] || [ -d "$SHARE_PATH" ] || [ -d "$CACHE_PATH" ]; then
-        echo "Error: Configuration directories already existis."
+        echo "Error: Configuration directories already exist."
         exit 1
     fi
 
@@ -56,7 +97,7 @@ if [ "$CREATE_CONFIG" = true ]; then
     echo "New configuration 'nvim_$CONFIG_NAME' created and switched to."
 else
     if [ ! -d "$CONFIG_PATH" ] || [ ! -d "$SHARE_PATH" ] || [ ! -d "$CACHE_PATH" ]; then
-        echo "Error: one or more conficuration dirs doesn't exist(s)."
+        echo "Error: one or more configuration dirs don't exist."
         exit 1
     fi
 
